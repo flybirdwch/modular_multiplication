@@ -11,7 +11,8 @@ def digits_to_num(arr, bits_in_digit):
 
 def num_to_digits(num, bits_in_digit, num_digits):
     """
-    Little endian
+    Little endian \n
+    将一个大整数拆成数量为num_digits的部分，每部分的bit位数是bits_in_digit
     """
     temp_num = num
     words = [0] * num_digits

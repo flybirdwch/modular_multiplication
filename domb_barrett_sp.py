@@ -1,5 +1,6 @@
 from math import *
 from random import *
+from datetime import datetime
 
 
 class barrett_domb_sp:
@@ -7,7 +8,7 @@ class barrett_domb_sp:
         self.n = 377
         self.s = 258664426012969094010652733694893533536393512754914660539884262666720468348340822774968888139573360124440321458177
         assert (self.s < 2 ** self.n)
-        self.m = 2 ** (2 * self.n) // self.s
+        self.m = 2 ** (2 * self.n) // self.s #m是n+1位
         self.ms = self.m * self.s
 
     def run(self, do_print=False):
@@ -15,27 +16,33 @@ class barrett_domb_sp:
         b = randint(0, self.s - 1)
         # a = 258664426012969094010652733694893533536393512754914660539884262666720468348340822774968888139573360124440321458177 - 1
         # b = 258664426012969094010652733694893533536393512754914660539884262666720468348340822774968888139573360124440321458177 - 1
+        
         # direct calc
         ab = a * b
+        start_time = datetime.now()
         _l, _r = divmod(ab, self.s)  # sim only (not for synthesis)
+        end_time = datetime.now()
+        elapsed_time = (end_time - start_time).microseconds
+        print(f"直接算法经过时间：{elapsed_time:.0f}毫秒")
 
         # a*b full mult
-        ab_msb = ab >> self.n
-        ab_lsb = ab % 2 ** (self.n + 2)
+        ab_msb = ab >> self.n #取n位的msb
+        ab_lsb = ab % 2 ** (self.n + 2) #取n+2位的lsb
 
         # ab*m msb mult (attempt)
-        abm = ab_msb * self.m
-        l1 = abm >> self.n
+        abm = ab_msb * self.m  #2n+1位
+        l1 = abm >> self.n #n+1位
         _e_l1 = _l - l1  # sim only (not for synthesis)
         assert (_e_l1 < 4)
         assert (_e_l1 >= 0)
 
         # l1*s lsb mult
-        l1s = l1 * self.s
-        l1s_lsb = l1s % 2 ** (self.n + 2)
+        l1s = l1 * self.s #2n+1位
+        l1s_lsb = l1s % 2 ** (self.n + 2) #n+2位
 
         # ab-l1s fixed width adder
-        l1s_lsb_not = ~l1s_lsb % 2 ** (self.n + 2)
+        #减法计算：a-b = a+(b求反加1)
+        l1s_lsb_not = ~l1s_lsb % 2 ** (self.n + 2) 
         r_plus = (ab_lsb + l1s_lsb_not + 1) % 2 ** (self.n + 2)
 
         # summary (replace with iterative subtraction)
@@ -79,6 +86,6 @@ class barrett_domb_sp:
 
 if __name__ == '__main__':
     mpm_ = barrett_domb_sp()
-    for i in range(1000000):
+    for i in range(1):
         mpm_.run()
     mpm_.run(do_print=True)
